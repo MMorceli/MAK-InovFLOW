@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAK InovFLOW v1.14 - Gestão Completa de Ideias e Projetos</title>
+    <title>MAK InovFLOW v1.15 - Gestão Completa de Ideias e Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Biblioteca EmailJS -->
@@ -40,7 +40,7 @@
                 <img src="Logo_MAK.png" alt="MAK Soluções Elétricas" class="h-10 object-contain">
                 <div class="flex items-center space-x-2 border-l-2 border-red-600 pl-3 ml-2">
                     <span class="text-xl font-bold tracking-wide text-zinc-800">InovFLOW</span>
-                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.14</span>
+                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.15</span>
                 </div>
             </div>
             <nav class="flex flex-wrap justify-center gap-2 md:gap-4 text-sm md:text-base mt-2 md:mt-0">
@@ -88,9 +88,15 @@
                             <option value="asc">Data de Lançamento (Mais antigas)</option>
                         </select>
                     </div>
-                    <button onclick="renderIdeas()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1 ml-auto">
-                        <i class="fa-solid fa-rotate"></i> <span>Atualizar / Filtrar</span>
-                    </button>
+                    
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button onclick="renderIdeas()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
+                        </button>
+                        <button onclick="clearFilters('ideas')" class="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-eraser"></i> <span>Limpar Filtros</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="ideas-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -151,9 +157,15 @@
                                 <option value="deadline_desc">Previsão de Término (Distantes)</option>
                             </select>
                         </div>
-                        <button onclick="renderProjectsGrid()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1 ml-auto">
-                            <i class="fa-solid fa-rotate"></i> <span>Atualizar / Filtrar</span>
-                        </button>
+                        
+                        <div class="flex items-center gap-2 ml-auto">
+                            <button onclick="renderProjectsGrid()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                                <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
+                            </button>
+                            <button onclick="clearFilters('projects')" class="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                                <i class="fa-solid fa-eraser"></i> <span>Limpar Filtros</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div id="projects-active-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -182,6 +194,7 @@
                         <div>
                             <strong class="text-zinc-800 flex items-center space-x-1 mb-1"><i class="fa-solid fa-note-sticky text-amber-500"></i> <span>Anotações Livres</span></strong>
                             <p id="kanban-project-notes" class="text-zinc-600 whitespace-pre-wrap leading-relaxed italic">...</p>
+                            <div id="kanban-project-drive-container" class="mt-2"></div>
                         </div>
                     </div>
                     <div id="kanban-overdue-alert"></div>
@@ -257,9 +270,15 @@
                             <option value="created_asc">Data de Lançamento (Mais antigas)</option>
                         </select>
                     </div>
-                    <button onclick="renderCompletedProjects()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1 ml-auto">
-                        <i class="fa-solid fa-rotate"></i> <span>Atualizar / Filtrar</span>
-                    </button>
+                    
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button onclick="renderCompletedProjects()" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-filter"></i> <span>Filtrar</span>
+                        </button>
+                        <button onclick="clearFilters('completed')" class="bg-zinc-200 hover:bg-zinc-300 text-zinc-700 font-medium px-4 py-1.5 rounded-lg text-sm transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-eraser"></i> <span>Limpar Filtros</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -295,6 +314,7 @@
                     <datalist id="areas-datalist"></datalist>
                 </div>
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Descrição</label><textarea id="idea-desc" rows="3" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></textarea></div>
+                <div><label class="block text-sm font-medium text-zinc-700 mb-1">Link do Google Drive (Opcional)</label><input type="url" id="idea-link" class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="https://drive.google.com/..."></div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeIdeaModal()" class="px-4 py-2 border rounded-lg text-zinc-600 hover:bg-zinc-100 transition text-sm">Cancelar</button>
                     <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm">Salvar</button>
@@ -366,6 +386,10 @@
                     <label class="block text-sm font-medium text-zinc-700 mb-1">Anotações Livres</label>
                     <textarea id="project-notes-edit" rows="4" class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Links, observações, pautas de reuniões..."></textarea>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Link do Google Drive</label>
+                    <input type="url" id="project-link-edit" class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="https://drive.google.com/...">
+                </div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeProjectModal()" class="px-4 py-2 border rounded-lg text-zinc-600 hover:bg-zinc-100 text-sm transition">Cancelar</button>
                     <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition font-medium">Salvar Alterações</button>
@@ -411,16 +435,17 @@
         let currentTaskStatus = 'todo';
         let currentTab = 'ideas';
 
-        // Tabela fixa de cores específicas por área para garantir consistência
+        // Tabela de cores específicas por área para garantir consistência
+        // OBS: A cor vermelha nativa do site foi removida desta lista a pedido para não conflitar com botões principais
         const areaColorPalette = [
-            { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
             { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
             { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
             { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
             { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
             { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200' },
             { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
-            { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' }
+            { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200' },
+            { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' }
         ];
         const areaColorMap = {};
 
@@ -599,6 +624,7 @@
                 document.getElementById('idea-author').value = idea.authorId;
                 document.getElementById('idea-area').value = idea.area || '';
                 document.getElementById('idea-desc').value = idea.desc;
+                document.getElementById('idea-link').value = idea.driveLink || '';
             } else {
                 document.getElementById('idea-form').reset();
             }
@@ -654,6 +680,7 @@
                 document.getElementById('project-area-edit').value = p.area || '';
                 document.getElementById('project-desc-edit').value = p.desc || '';
                 document.getElementById('project-notes-edit').value = p.notes || '';
+                document.getElementById('project-link-edit').value = p.driveLink || '';
                 document.getElementById('project-modal').classList.remove('hidden');
             }
         };
@@ -682,7 +709,8 @@
                 title: document.getElementById('idea-title').value, 
                 authorId: document.getElementById('idea-author').value, 
                 area: document.getElementById('idea-area').value.trim(),
-                desc: document.getElementById('idea-desc').value 
+                desc: document.getElementById('idea-desc').value,
+                driveLink: document.getElementById('idea-link').value.trim()
             };
             
             if (id) {
@@ -752,13 +780,15 @@
                 currentProj.area = document.getElementById('project-area-edit').value.trim();
                 currentProj.desc = document.getElementById('project-desc-edit').value;
                 currentProj.notes = document.getElementById('project-notes-edit').value;
+                currentProj.driveLink = document.getElementById('project-link-edit').value.trim();
                 
                 await updateDoc(doc(db, "projects", currentProj.id), { 
                     title: currentProj.title,
                     responsibleId: currentProj.responsibleId,
                     area: currentProj.area,
                     desc: currentProj.desc,
-                    notes: currentProj.notes
+                    notes: currentProj.notes,
+                    driveLink: currentProj.driveLink
                 });
                 
                 window.closeProjectModal(); 
@@ -838,6 +868,7 @@
                 area: idea.area || 'Geral',
                 responsibleId: idea.authorId,
                 notes: '', 
+                driveLink: idea.driveLink || '',
                 status: 'active',
                 createdAt: idea.createdAt || new Date().toISOString(),
                 tasks: [{ id: Date.now().toString(), title: 'Planejamento Inicial', status: 'todo', assigneeId: idea.authorId, deadline: new Date().toISOString().split('T')[0], emailSent: false, sequence: 1, notes: '' }] 
@@ -938,6 +969,26 @@
                 }
             }
         };
+        
+        // Função Global para limpar filtros em qualquer aba visível
+        window.clearFilters = (tab) => {
+            if (tab === 'ideas') {
+                document.getElementById('filter-ideas-area').value = '';
+                document.getElementById('filter-ideas-user').value = '';
+                document.getElementById('sort-ideas-date').value = 'desc';
+                renderIdeas();
+            } else if (tab === 'projects') {
+                document.getElementById('filter-projects-area').value = '';
+                document.getElementById('filter-projects-user').value = '';
+                document.getElementById('sort-projects-order').value = 'created_desc';
+                renderProjectsGrid();
+            } else if (tab === 'completed') {
+                document.getElementById('filter-completed-area').value = '';
+                document.getElementById('filter-completed-user').value = '';
+                document.getElementById('sort-completed-order').value = 'completed_desc';
+                renderCompletedProjects();
+            }
+        };
 
         function renderUsers() {
             const grid = document.getElementById('users-grid');
@@ -987,6 +1038,7 @@
                             </div>
                             <h3 class="font-bold text-lg pr-6 leading-tight">${idea.title}</h3>
                             <p class="text-zinc-600 text-sm whitespace-pre-wrap">${idea.desc}</p>
+                            ${idea.driveLink ? `<div class="pt-2"><a href="${idea.driveLink}" target="_blank" class="inline-flex items-center text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg px-2.5 py-1.5 font-medium transition"><i class="fa-brands fa-google-drive mr-1"></i> Acessar Documentos no Drive</a></div>` : ''}
                         </div>
                     </div>
                     <div class="pt-4 border-t border-zinc-100 flex justify-between items-center text-xs">
@@ -1156,7 +1208,8 @@
                         <h3 class="font-bold text-lg text-zinc-900 mb-1 leading-tight">${p.title}</h3>
                         <p class="text-xs text-zinc-500 mb-2"><i class="fa-solid fa-user-tie mr-1"></i> Resp.: <strong>${resp ? resp.name : 'Não definido'}</strong></p>
                         <p class="text-zinc-600 text-sm mb-3 line-clamp-3">${p.desc || 'Nenhuma descrição fornecida.'}</p>
-                        ${p.notes ? `<div class="bg-zinc-50 border border-zinc-200 text-zinc-700 p-2 rounded text-xs italic line-clamp-2"><i class="fa-solid fa-note-sticky mr-1"></i> ${p.notes}</div>` : ''}
+                        ${p.notes ? `<div class="bg-zinc-50 border border-zinc-200 text-zinc-700 p-2 rounded text-xs italic line-clamp-2 mb-3"><i class="fa-solid fa-note-sticky mr-1"></i> ${p.notes}</div>` : ''}
+                        ${p.driveLink ? `<a href="${p.driveLink}" target="_blank" class="block mb-2 text-center text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg py-1.5 font-medium transition"><i class="fa-brands fa-google-drive mr-1"></i> Acessar Documentos no Drive</a>` : ''}
                     </div>
                     <div class="space-y-1 mb-4">
                         <div class="flex justify-between text-xs font-bold text-zinc-500"><span>Progresso</span><span class="text-red-600">${pct}%</span></div>
@@ -1180,6 +1233,11 @@
             document.getElementById('kanban-project-responsible').textContent = resp ? resp.name : 'Não definido';
             document.getElementById('kanban-project-desc').textContent = p.desc || 'Nenhuma descrição fornecida para este projeto.';
             document.getElementById('kanban-project-notes').textContent = p.notes || 'Sem anotações no momento.';
+            
+            const driveContainer = document.getElementById('kanban-project-drive-container');
+            if(driveContainer) {
+                driveContainer.innerHTML = p.driveLink ? `<a href="${p.driveLink}" target="_blank" class="inline-flex items-center text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg px-2.5 py-1 font-medium transition mt-1"><i class="fa-brands fa-google-drive mr-1"></i> Acessar Google Drive</a>` : '';
+            }
 
             ['todo', 'inprogress', 'done'].forEach(id => document.getElementById('kanban-'+id).innerHTML = '');
             let counts = { todo: 0, inprogress: 0, done: 0 };
@@ -1290,6 +1348,7 @@
                         <h3 class="font-bold text-lg mb-1">${p.title}</h3>
                         <p class="text-xs text-zinc-500 mb-3"><i class="fa-solid fa-user-tie mr-1"></i> Resp.: <strong>${resp ? resp.name : 'Não definido'}</strong></p>
                         <p class="text-zinc-500 text-sm mb-4 line-clamp-3">${p.desc || 'Nenhuma descrição fornecida.'}</p>
+                        ${p.driveLink ? `<a href="${p.driveLink}" target="_blank" class="block mb-3 text-center text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg py-1.5 font-medium transition"><i class="fa-brands fa-google-drive mr-1"></i> Acessar Documentos no Drive</a>` : ''}
                     </div>
                     <div class="space-y-2 pt-4 border-t border-zinc-100">
                         <div class="flex justify-between text-xs text-zinc-400"><span>Lançamento: ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('pt-BR') : 'N/D'}</span><span>Conclusão: ${p.completedAt ? new Date(p.completedAt).toLocaleDateString('pt-BR') : 'N/D'}</span></div>
@@ -1300,6 +1359,7 @@
         }
 
         // Vincular funções de renderização ao escopo global para garantir funcionamento dos botões e filtros
+        window.clearFilters = clearFilters;
         window.renderIdeas = renderIdeas;
         window.renderProjectsGrid = renderProjectsGrid;
         window.renderCompletedProjects = renderCompletedProjects;
