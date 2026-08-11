@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAK InovFLOW v1.12 - Gestão Completa de Ideias e Projetos</title>
+    <title>MAK InovFLOW v1.13 - Gestão Completa de Ideias e Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Biblioteca EmailJS -->
@@ -40,7 +40,7 @@
                 <img src="Logo_MAK.png" alt="MAK Soluções Elétricas" class="h-10 object-contain">
                 <div class="flex items-center space-x-2 border-l-2 border-red-600 pl-3 ml-2">
                     <span class="text-xl font-bold tracking-wide text-zinc-800">InovFLOW</span>
-                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.12</span>
+                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.13</span>
                 </div>
             </div>
             <nav class="flex flex-wrap justify-center gap-2 md:gap-4 text-sm md:text-base mt-2 md:mt-0">
@@ -58,16 +58,36 @@
     </header>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+        <!-- SEÇÃO DE IDEIAS ATIVAS -->
         <section id="tab-ideas" class="space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-zinc-900">Feed de Ideias Inovadoras</h1>
                     <p class="text-zinc-500 text-sm">Explore ideias da equipe, vote, edite ou transforme em projetos estruturados.</p>
                 </div>
             </div>
+            <!-- Filtros e Ordenação de Ideias -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                        <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter mr-1"></i> Área:</span>
+                        <select id="filter-ideas-area" onchange="renderIdeas()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                            <option value="">Todas as Áreas</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                        <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-sort mr-1"></i> Ordenar por:</span>
+                        <select id="sort-ideas-date" onchange="renderIdeas()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                            <option value="desc">Data de Lançamento (Mais recentes)</option>
+                            <option value="asc">Data de Lançamento (Mais antigas)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div id="ideas-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
+        <!-- SEÇÃO DE LIXEIRA -->
         <section id="tab-discarded" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <div>
@@ -78,6 +98,7 @@
             <div id="discarded-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
+        <!-- SEÇÃO DE PROJETOS ATIVOS -->
         <section id="tab-projects" class="hidden space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -86,9 +107,30 @@
                 </div>
             </div>
             <div id="projects-grid-container" class="space-y-6">
+                <!-- Filtros e Ordenação de Projetos Ativos -->
+                <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                            <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter mr-1"></i> Área:</span>
+                            <select id="filter-projects-area" onchange="renderProjectsGrid()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                                <option value="">Todas as Áreas</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                            <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-sort mr-1"></i> Ordenar por:</span>
+                            <select id="sort-projects-order" onchange="renderProjectsGrid()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                                <option value="created_desc">Data de Lançamento (Mais recentes)</option>
+                                <option value="created_asc">Data de Lançamento (Mais antigas)</option>
+                                <option value="deadline_asc">Previsão de Término (Próximas)</option>
+                                <option value="deadline_desc">Previsão de Término (Distantes)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div id="projects-active-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
 
+            <!-- KANBAN DO PROJETO -->
             <div id="projects-kanban-container" class="hidden space-y-6">
                 <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-zinc-200 space-y-5 relative">
                     <button onclick="backToProjectsGrid()" class="absolute top-4 right-4 text-zinc-400 hover:text-red-600 transition" title="Fechar Kanban"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -149,6 +191,7 @@
             </div>
         </section>
 
+        <!-- SEÇÃO DE PROJETOS CONCLUÍDOS -->
         <section id="tab-completed" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <div>
@@ -156,9 +199,30 @@
                     <p class="text-zinc-500 text-sm">Histórico de projetos finalizados com sucesso.</p>
                 </div>
             </div>
+            <!-- Filtros e Ordenação de Projetos Concluídos -->
+            <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                        <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-filter mr-1"></i> Área:</span>
+                        <select id="filter-completed-area" onchange="renderCompletedProjects()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                            <option value="">Todas as Áreas</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center space-x-2 text-sm w-full md:w-auto">
+                        <span class="text-zinc-500 font-medium whitespace-nowrap"><i class="fa-solid fa-arrow-sort mr-1"></i> Ordenar por:</span>
+                        <select id="sort-completed-order" onchange="renderCompletedProjects()" class="border border-zinc-300 rounded-lg px-3 py-1.5 bg-zinc-50 text-sm focus:outline-none focus:ring-2 focus:ring-red-600 w-full md:w-auto">
+                            <option value="completed_desc">Data de Conclusão (Mais recentes)</option>
+                            <option value="completed_asc">Data de Conclusão (Mais antigas)</option>
+                            <option value="created_desc">Data de Lançamento (Mais recentes)</option>
+                            <option value="created_asc">Data de Lançamento (Mais antigas)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </section>
 
+        <!-- SEÇÃO DE USUÁRIOS -->
         <section id="tab-users" class="hidden space-y-6">
             <div class="flex justify-between items-center">
                 <div>
@@ -174,6 +238,7 @@
     </main>
 
     <!-- Modais -->
+    <!-- Modal de Ideia Atualizado com Área de Aplicação -->
     <div id="idea-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 id="idea-modal-title" class="text-xl font-bold text-zinc-900">Nova Ideia</h2>
@@ -181,6 +246,7 @@
                 <input type="hidden" id="idea-edit-id">
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Título da Ideia</label><input type="text" id="idea-title" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></div>
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Autor (Usuário)</label><select id="idea-author" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></select></div>
+                <div><label class="block text-sm font-medium text-zinc-700 mb-1">Área de Aplicação</label><input type="text" id="idea-area" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Ex: Engenharia, Produção, Qualidade..."></div>
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Descrição</label><textarea id="idea-desc" rows="3" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></textarea></div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeIdeaModal()" class="px-4 py-2 border rounded-lg text-zinc-600 hover:bg-zinc-100 transition text-sm">Cancelar</button>
@@ -190,7 +256,7 @@
         </div>
     </div>
 
-    <!-- Modal de Tarefa Atualizado com Sequência e Notas -->
+    <!-- Modal de Tarefa -->
     <div id="task-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 id="task-modal-title" class="text-xl font-bold text-zinc-900">Nova Tarefa</h2>
@@ -211,6 +277,7 @@
         </div>
     </div>
 
+    <!-- Modal de Usuário -->
     <div id="user-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 id="user-modal-title" class="text-xl font-bold text-zinc-900">Cadastrar Usuário</h2>
@@ -227,6 +294,7 @@
         </div>
     </div>
 
+    <!-- Modal de Projeto Atualizado com Área de Aplicação -->
     <div id="project-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 class="text-xl font-bold text-zinc-900">Editar Informações do Projeto</h2>
@@ -234,6 +302,10 @@
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 mb-1">Título do Projeto</label>
                     <input type="text" id="project-title-edit" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Área de Aplicação</label>
+                    <input type="text" id="project-area-edit" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 mb-1">Descrição</label>
@@ -301,6 +373,7 @@
 
                 document.getElementById('loading-screen').classList.add('hidden');
                 updateSelects();
+                updateAreaFilters();
                 window.switchTab('ideas');
             } catch (error) {
                 alert("Erro ao conectar no banco.");
@@ -317,7 +390,6 @@
             return deadlineDate < today;
         };
 
-        // Envio Real via EmailJS Refatorado
         async function sendOverdueEmail(task, user) {
             if(task.emailSent) return;
             
@@ -368,6 +440,24 @@
             document.getElementById('task-assignee').innerHTML = html;
         }
 
+        function updateAreaFilters() {
+            const areas = new Set();
+            ideas.forEach(i => { if (i.area) areas.add(i.area); });
+            projects.forEach(p => { if (p.area) areas.add(p.area); });
+
+            const areaList = Array.from(areas).sort();
+            const optionsHtml = '<option value="">Todas as Áreas</option>' + areaList.map(a => `<option value="${a}">${a}</option>`).join('');
+
+            ['filter-ideas-area', 'filter-projects-area', 'filter-completed-area'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const currentVal = el.value;
+                    el.innerHTML = optionsHtml;
+                    el.value = currentVal;
+                }
+            });
+        }
+
         window.switchTab = (tab) => {
             currentTab = tab;
             ['ideas', 'discarded', 'projects', 'completed', 'users'].forEach(t => {
@@ -378,6 +468,7 @@
                 nav.classList.toggle('border-transparent', t !== tab);
                 nav.classList.toggle('text-zinc-600', t !== tab);
             });
+            updateAreaFilters();
             if (tab === 'ideas') renderIdeas();
             if (tab === 'discarded') renderDiscardedIdeas();
             if (tab === 'projects') { 
@@ -422,7 +513,10 @@
                 const idea = ideas.find(i => i.id === id);
                 document.getElementById('idea-title').value = idea.title;
                 document.getElementById('idea-author').value = idea.authorId;
+                document.getElementById('idea-area').value = idea.area || '';
                 document.getElementById('idea-desc').value = idea.desc;
+            } else {
+                document.getElementById('idea-form').reset();
             }
             document.getElementById('idea-modal').classList.remove('hidden'); 
         };
@@ -459,6 +553,8 @@
                 document.getElementById('user-name').value = u.name;
                 document.getElementById('user-email').value = u.email;
                 document.getElementById('user-phone').value = u.phone;
+            } else {
+                document.getElementById('user-form').reset();
             }
             document.getElementById('user-modal').classList.remove('hidden'); 
         };
@@ -470,6 +566,7 @@
             if(p) {
                 activeProjectId = targetId;
                 document.getElementById('project-title-edit').value = p.title || '';
+                document.getElementById('project-area-edit').value = p.area || '';
                 document.getElementById('project-desc-edit').value = p.desc || '';
                 document.getElementById('project-notes-edit').value = p.notes || '';
                 document.getElementById('project-modal').classList.remove('hidden');
@@ -496,18 +593,27 @@
         window.handleSaveIdea = async (e) => {
             e.preventDefault();
             const id = document.getElementById('idea-edit-id').value;
-            const data = { title: document.getElementById('idea-title').value, authorId: document.getElementById('idea-author').value, desc: document.getElementById('idea-desc').value };
+            const data = { 
+                title: document.getElementById('idea-title').value, 
+                authorId: document.getElementById('idea-author').value, 
+                area: document.getElementById('idea-area').value.trim(),
+                desc: document.getElementById('idea-desc').value 
+            };
             
             if (id) {
                 await updateDoc(doc(db, "ideas", id), data);
                 const idx = ideas.findIndex(i => i.id === id);
                 if (idx !== -1) ideas[idx] = { ...ideas[idx], ...data };
             } else {
-                data.likes = 0; data.status = 'active';
+                data.likes = 0; 
+                data.status = 'active';
+                data.createdAt = new Date().toISOString();
                 const docRef = await addDoc(collection(db, "ideas"), data);
                 ideas.unshift({ id: docRef.id, ...data });
             }
-            window.closeIdeaModal(); renderIdeas();
+            window.closeIdeaModal(); 
+            updateAreaFilters();
+            renderIdeas();
         };
 
         window.handleSaveTask = async (e) => {
@@ -544,7 +650,6 @@
                     });
                 }
                 
-                // Ordenamento automático por sequência
                 currentProj.tasks.sort((a, b) => (parseInt(a.sequence) || 0) - (parseInt(b.sequence) || 0));
 
                 await updateDoc(doc(db, "projects", currentProj.id), { tasks: currentProj.tasks });
@@ -557,16 +662,19 @@
             const currentProj = projects.find(p => p.id === activeProjectId);
             if(currentProj) {
                 currentProj.title = document.getElementById('project-title-edit').value;
+                currentProj.area = document.getElementById('project-area-edit').value.trim();
                 currentProj.desc = document.getElementById('project-desc-edit').value;
                 currentProj.notes = document.getElementById('project-notes-edit').value;
                 
                 await updateDoc(doc(db, "projects", currentProj.id), { 
                     title: currentProj.title,
+                    area: currentProj.area,
                     desc: currentProj.desc,
                     notes: currentProj.notes
                 });
                 
                 window.closeProjectModal(); 
+                updateAreaFilters();
                 
                 if(!document.getElementById('projects-grid-container').classList.contains('hidden')) {
                     renderProjectsGrid();
@@ -591,14 +699,17 @@
             const newProj = { 
                 title: idea.title, 
                 desc: idea.desc, 
+                area: idea.area || 'Geral',
                 notes: '', 
-                status: 'active', 
+                status: 'active',
+                createdAt: idea.createdAt || new Date().toISOString(),
                 tasks: [{ id: Date.now().toString(), title: 'Planejamento Inicial', status: 'todo', assigneeId: idea.authorId, deadline: new Date().toISOString().split('T')[0], emailSent: false, sequence: 1, notes: '' }] 
             };
             
             const docRef = await addDoc(collection(db, "projects"), newProj);
             projects.push({ id: docRef.id, ...newProj });
             
+            updateAreaFilters();
             window.switchTab('projects');
             window.openProjectKanban(docRef.id);
         };
@@ -607,7 +718,11 @@
             const proj = projects.find(p => p.id === activeProjectId);
             if (proj && confirm(`Concluir o projeto "${proj.title}"?`)) { 
                 proj.status = 'completed'; 
-                await updateDoc(doc(db, "projects", proj.id), { status: 'completed' }); 
+                proj.completedAt = new Date().toISOString();
+                await updateDoc(doc(db, "projects", proj.id), { 
+                    status: 'completed',
+                    completedAt: proj.completedAt
+                }); 
                 
                 const screen = document.getElementById('celebration-screen');
                 document.getElementById('celebration-text').textContent = `Projeto "${proj.title}" finalizado com sucesso!`;
@@ -620,7 +735,19 @@
             }
         };
 
-        window.reopenProject = async (id) => { const proj = projects.find(p => p.id === id); if(proj) { proj.status = 'active'; activeProjectId = proj.id; await updateDoc(doc(db, "projects", id), { status: 'active' }); window.switchTab('projects'); } };
+        window.reopenProject = async (id) => { 
+            const proj = projects.find(p => p.id === id); 
+            if(proj) { 
+                proj.status = 'active'; 
+                delete proj.completedAt;
+                activeProjectId = proj.id; 
+                await updateDoc(doc(db, "projects", id), { 
+                    status: 'active',
+                    completedAt: null
+                }); 
+                window.switchTab('projects'); 
+            } 
+        };
 
         window.moveTask = async (taskId, newStatus) => {
             const p = projects.find(p => p.id === activeProjectId);
@@ -641,15 +768,46 @@
         }
 
         function renderIdeas() {
-            const active = ideas.filter(i => i.status === 'active');
-            document.getElementById('ideas-grid').innerHTML = active.length === 0 ? '<p class="text-zinc-400 col-span-full text-center py-8">Nenhuma ideia ativa no momento.</p>' : active.map(idea => {
+            const areaFilter = document.getElementById('filter-ideas-area')?.value || '';
+            const sortOrder = document.getElementById('sort-ideas-date')?.value || 'desc';
+
+            let active = ideas.filter(i => i.status === 'active');
+            
+            // Filtrar por Área
+            if (areaFilter) {
+                active = active.filter(i => (i.area || '').toLowerCase() === areaFilter.toLowerCase());
+            }
+
+            // Ordenar por Data de Lançamento (createdAt)
+            active.sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            });
+
+            document.getElementById('ideas-grid').innerHTML = active.length === 0 ? '<p class="text-zinc-400 col-span-full text-center py-8">Nenhuma ideia encontrada com os filtros selecionados.</p>' : active.map(idea => {
                 const author = getUser(idea.authorId);
+                const launchDate = idea.createdAt ? new Date(idea.createdAt).toLocaleDateString('pt-BR') : 'Data N/D';
                 return `<div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200 hover:shadow-md transition relative group flex flex-col justify-between">
                     <div>
                         <button onclick="openIdeaModal('${idea.id}')" class="absolute top-4 right-4 text-zinc-300 hover:text-red-600 transition hidden group-hover:block"><i class="fa-solid fa-pen"></i></button>
-                        <div class="space-y-2 mb-4"><span class="text-xs font-semibold px-2 py-1 bg-zinc-100 text-zinc-700 rounded-full"><i class="fa-solid fa-user mr-1"></i> ${author ? author.name.split(' ')[0] : 'Desconhecido'}</span><h3 class="font-bold text-lg pr-6 leading-tight">${idea.title}</h3><p class="text-zinc-600 text-sm whitespace-pre-wrap">${idea.desc}</p></div>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <span class="text-xs font-semibold px-2 py-1 bg-zinc-100 text-zinc-700 rounded-full"><i class="fa-solid fa-user mr-1"></i> ${author ? author.name.split(' ')[0] : 'Desconhecido'}</span>
+                                ${idea.area ? `<span class="text-xs font-semibold px-2 py-1 bg-red-50 text-red-700 rounded-full"><i class="fa-solid fa-tag mr-1"></i> ${idea.area}</span>` : ''}
+                            </div>
+                            <h3 class="font-bold text-lg pr-6 leading-tight">${idea.title}</h3>
+                            <p class="text-zinc-600 text-sm whitespace-pre-wrap">${idea.desc}</p>
+                        </div>
                     </div>
-                    <div class="pt-4 border-t border-zinc-100 flex justify-between items-center"><button onclick="likeIdea('${idea.id}')" class="text-zinc-500 hover:text-red-600 text-sm font-medium"><i class="fa-solid fa-heart mr-1"></i>${idea.likes}</button><div class="space-x-2"><button onclick="discardIdea('${idea.id}')" class="text-zinc-400 hover:text-amber-600 text-xs px-2 py-1" title="Descartar"><i class="fa-solid fa-ban"></i></button><button onclick="convertToProject('${idea.id}')" class="bg-zinc-800 hover:bg-zinc-900 text-white text-xs px-3 py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Projeto</button></div></div>
+                    <div class="pt-4 border-t border-zinc-100 flex justify-between items-center text-xs">
+                        <button onclick="likeIdea('${idea.id}')" class="text-zinc-500 hover:text-red-600 font-medium text-sm"><i class="fa-solid fa-heart mr-1"></i>${idea.likes}</button>
+                        <span class="text-zinc-400"><i class="fa-regular fa-calendar mr-1"></i>${launchDate}</span>
+                        <div class="space-x-2">
+                            <button onclick="discardIdea('${idea.id}')" class="text-zinc-400 hover:text-amber-600 px-2 py-1" title="Descartar"><i class="fa-solid fa-ban"></i></button>
+                            <button onclick="convertToProject('${idea.id}')" class="bg-zinc-800 hover:bg-zinc-900 text-white text-xs px-3 py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Projeto</button>
+                        </div>
+                    </div>
                 </div>`;
             }).join('');
         }
@@ -661,10 +819,43 @@
         }
 
         function renderProjectsGrid() {
-            const active = projects.filter(p => p.status === 'active');
+            const areaFilter = document.getElementById('filter-projects-area')?.value || '';
+            const sortOrder = document.getElementById('sort-projects-order')?.value || 'created_desc';
+
+            let active = projects.filter(p => p.status === 'active');
+            
+            // Filtrar por Área
+            if (areaFilter) {
+                active = active.filter(p => (p.area || '').toLowerCase() === areaFilter.toLowerCase());
+            }
+
+            // Ordenação
+            active.sort((a, b) => {
+                if (sortOrder.startsWith('created')) {
+                    const dateA = new Date(a.createdAt || 0);
+                    const dateB = new Date(b.createdAt || 0);
+                    return sortOrder === 'created_desc' ? dateB - dateA : dateA - dateB;
+                } else if (sortOrder.startsWith('deadline')) {
+                    const getMaxDate = (proj) => {
+                        let max = null;
+                        proj.tasks.forEach(t => {
+                            if(t.deadline) {
+                                const d = new Date(t.deadline + 'T00:00:00');
+                                if(!max || d > max) max = d;
+                            }
+                        });
+                        return max ? max.getTime() : 0;
+                    };
+                    const dateA = getMaxDate(a);
+                    const dateB = getMaxDate(b);
+                    return sortOrder === 'deadline_desc' ? dateB - dateA : dateA - dateB;
+                }
+                return 0;
+            });
+
             const grid = document.getElementById('projects-active-grid');
             if (active.length === 0) {
-                grid.innerHTML = '<p class="text-zinc-400 col-span-full text-center py-8">Nenhum projeto em andamento.</p>';
+                grid.innerHTML = '<p class="text-zinc-400 col-span-full text-center py-8">Nenhum projeto encontrado com os filtros selecionados.</p>';
                 return;
             }
 
@@ -686,9 +877,9 @@
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200 hover:shadow-md transition flex flex-col relative group">
                     <button onclick="openProjectEditModal('${p.id}')" class="absolute top-4 right-4 text-zinc-300 hover:text-red-600 transition hidden group-hover:block z-10"><i class="fa-solid fa-pen"></i></button>
                     <div class="flex-grow mb-4">
-                        <div class="flex justify-between items-start mb-3">
+                        <div class="flex justify-between items-start mb-3 gap-2 flex-wrap">
                             <span class="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-700 rounded-full"><i class="fa-solid fa-rocket mr-1"></i> Em andamento</span>
-                            <span class="text-xs font-bold text-zinc-500 pr-5"><i class="fa-regular fa-calendar mr-1"></i> ${dateStr}</span>
+                            ${p.area ? `<span class="text-xs font-semibold px-2 py-1 bg-zinc-100 text-zinc-700 rounded-full"><i class="fa-solid fa-tag mr-1"></i> ${p.area}</span>` : ''}
                         </div>
                         <h3 class="font-bold text-lg text-zinc-900 mb-2 leading-tight">${p.title}</h3>
                         <p class="text-zinc-600 text-sm mb-3 line-clamp-3">${p.desc || 'Nenhuma descrição fornecida.'}</p>
@@ -697,6 +888,7 @@
                     <div class="space-y-1 mb-4">
                         <div class="flex justify-between text-xs font-bold text-zinc-500"><span>Progresso</span><span class="text-red-600">${pct}%</span></div>
                         <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden"><div class="bg-red-600 h-1.5 rounded-full" style="width: ${pct}%"></div></div>
+                        <div class="flex justify-between text-[11px] text-zinc-400 pt-1"><span>Criação: ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('pt-BR') : 'N/D'}</span><span>Término: ${dateStr}</span></div>
                     </div>
                     <div class="pt-4 border-t border-zinc-100">
                         <button onclick="openProjectKanban('${p.id}')" class="w-full bg-zinc-800 hover:bg-zinc-900 text-white font-medium text-sm py-2 rounded-lg transition shadow-sm">
@@ -720,7 +912,6 @@
             let maxDate = null;
             let hasAnyOverdue = false;
 
-            // Ordenamento automático das tarefas por sequência
             p.tasks.sort((a, b) => (parseInt(a.sequence) || 0) - (parseInt(b.sequence) || 0));
 
             p.tasks.forEach(t => {
@@ -756,7 +947,6 @@
             document.getElementById('project-progress-text').textContent = percentage + '%';
             document.getElementById('project-deadline-date').textContent = maxDate ? maxDate.toLocaleDateString('pt-BR') : 'Sem tarefas marcadas';
 
-            // Alerta de prazo condicional (aparece SOMENTE se houver atraso)
             const alertBox = document.getElementById('kanban-overdue-alert');
             if (hasAnyOverdue) {
                 alertBox.innerHTML = `<div class="p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg flex items-center space-x-2 text-sm animate-pulse">
@@ -769,17 +959,44 @@
         }
 
         function renderCompletedProjects() {
-            const completed = projects.filter(p => p.status === 'completed');
-            document.getElementById('completed-grid').innerHTML = completed.length === 0 ? '<p class="text-zinc-400 col-span-full text-center py-8">Nenhum projeto concluído.</p>' : completed.map(p => `
+            const areaFilter = document.getElementById('filter-completed-area')?.value || '';
+            const sortOrder = document.getElementById('sort-completed-order')?.value || 'completed_desc';
+
+            let completed = projects.filter(p => p.status === 'completed');
+
+            // Filtrar por Área
+            if (areaFilter) {
+                completed = completed.filter(p => (p.area || '').toLowerCase() === areaFilter.toLowerCase());
+            }
+
+            // Ordenação (Conclusão ou Lançamento/Criação)
+            completed.sort((a, b) => {
+                if (sortOrder.startsWith('completed')) {
+                    const dateA = new Date(a.completedAt || a.createdAt || 0);
+                    const dateB = new Date(b.completedAt || b.createdAt || 0);
+                    return sortOrder === 'completed_desc' ? dateB - dateA : dateA - dateB;
+                } else if (sortOrder.startsWith('created')) {
+                    const dateA = new Date(a.createdAt || 0);
+                    const dateB = new Date(b.createdAt || 0);
+                    return sortOrder === 'created_desc' ? dateB - dateA : dateA - dateB;
+                }
+                return 0;
+            });
+
+            document.getElementById('completed-grid').innerHTML = completed.length === 0 ? '<p class="text-zinc-400 col-span-full text-center py-8">Nenhum projeto concluído encontrado com os filtros selecionados.</p>' : completed.map(p => `
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200 flex flex-col justify-between">
                     <div>
-                        <div class="flex justify-between items-start mb-4">
+                        <div class="flex justify-between items-start mb-4 gap-2 flex-wrap">
                             <span class="text-xs font-semibold px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full"><i class="fa-solid fa-check-circle mr-1"></i> Concluído</span>
+                            ${p.area ? `<span class="text-xs font-semibold px-2 py-1 bg-zinc-100 text-zinc-700 rounded-full"><i class="fa-solid fa-tag mr-1"></i> ${p.area}</span>` : ''}
                         </div>
                         <h3 class="font-bold text-lg mb-2">${p.title}</h3>
                         <p class="text-zinc-500 text-sm mb-4 line-clamp-3">${p.desc || 'Nenhuma descrição fornecida.'}</p>
                     </div>
-                    <div class="pt-4 border-t border-zinc-100 flex justify-between items-center"><span class="text-zinc-500 text-xs font-medium"><i class="fa-solid fa-list-check mr-1"></i> ${p.tasks.length} tarefas globais</span><button onclick="reopenProject('${p.id}')" class="text-xs text-red-600 font-bold hover:underline">Reabrir Projeto</button></div>
+                    <div class="space-y-2 pt-4 border-t border-zinc-100">
+                        <div class="flex justify-between text-xs text-zinc-400"><span>Lançamento: ${p.createdAt ? new Date(p.createdAt).toLocaleDateString('pt-BR') : 'N/D'}</span><span>Conclusão: ${p.completedAt ? new Date(p.completedAt).toLocaleDateString('pt-BR') : 'N/D'}</span></div>
+                        <div class="flex justify-between items-center"><span class="text-zinc-500 text-xs font-medium"><i class="fa-solid fa-list-check mr-1"></i> ${p.tasks.length} tarefas</span><button onclick="reopenProject('${p.id}')" class="text-xs text-red-600 font-bold hover:underline">Reabrir Projeto</button></div>
+                    </div>
                 </div>`).join('');
         }
 
