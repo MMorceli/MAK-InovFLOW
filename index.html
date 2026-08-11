@@ -6,10 +6,12 @@
     <title>MAK InovFLOW - Gestão Completa de Ideias e Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Biblioteca EmailJS para envio real de e-mails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.com/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-enter { animation: slideIn 0.3s ease-out forwards; }
-        .loader { border-top-color: #dc2626; animation: spinner 1.5s linear infinite; } /* Vermelho MAK */
+        .loader { border-top-color: #dc2626; animation: spinner 1.5s linear infinite; }
         @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .celebration-anim { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -189,7 +191,6 @@
     </main>
 
     <!-- Modais -->
-    
     <div id="idea-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 id="idea-modal-title" class="text-xl font-bold text-zinc-900">Nova Ideia</h2>
@@ -238,7 +239,6 @@
         </div>
     </div>
 
-    <!-- Modal Edição de Informações do Projeto -->
     <div id="project-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 class="text-xl font-bold text-zinc-900">Editar Informações do Projeto</h2>
@@ -263,13 +263,13 @@
         </div>
     </div>
 
-    <!-- Firebase SDK (Módulo V9) -->
+    <!-- Firebase SDK e Lógica do App -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =====================================================================
-        // COLOQUE SUAS CREDENCIAIS DO FIREBASE AQUI
+        // CREDENCIAIS DO FIREBASE
         // =====================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDH5yGlK5zzk5pJkjRhDjN-3C8up5y9eOk",
@@ -279,12 +279,22 @@
             messagingSenderId: "190309162276",
             appId: "1:190309162276:web:6be5cd88e5d2cf98b4a7b1"
         };
+
         // =====================================================================
+        // CONFIGURAÇÃO DO EMAILJS (Insira suas chaves criadas no site do EmailJS)
+        // =====================================================================
+        const EMAILJS_SERVICE_ID = "service_d79ahkl"; 
+        const EMAILJS_TEMPLATE_ID = "template_418sqm6"; 
+        const EMAILJS_PUBLIC_KEY = "7jHkoHBdb_U_eakSN"; 
+
+        // Inicializa o EmailJS
+        if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "7jHkoHBdb_U_eakSN") {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        }
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Estado da Aplicação
         let users = [];
         let ideas = [];
         let projects = [];
@@ -292,7 +302,6 @@
         let currentTaskStatus = 'todo';
         let currentTab = 'ideas';
 
-        // Carregar dados
         async function loadData() {
             try {
                 const uSnap = await getDocs(collection(db, "users"));
@@ -313,7 +322,6 @@
             }
         }
 
-        // Funções Auxiliares
         const getUser = (id) => users.find(u => u.id === id);
         const isOverdue = (deadlineStr) => {
             if(!deadlineStr) return false;
@@ -321,15 +329,33 @@
             return new Date(deadlineStr + 'T00:00:00') < today;
         };
 
-        function sendOverdueEmail(task, user) {
+        // Envio Real via EmailJS
+        async function sendOverdueEmail(task, user) {
             if(task.emailSent) return;
             task.emailSent = true; 
+            
             const proj = projects.find(p => p.tasks.some(t => t.id === task.id));
-            if(proj) updateDoc(doc(db, "projects", proj.id), { tasks: proj.tasks });
+            if(proj) {
+                await updateDoc(doc(db, "projects", proj.id), { tasks: proj.tasks });
+            }
+
+            // Dispara o e-mail real caso o EmailJS esteja configurado
+            if (EMAILJS_PUBLIC_KEY && EMAILJS_PUBLIC_KEY !== "SUA_PUBLIC_KEY") {
+                try {
+                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                        to_name: user.name,
+                        to_email: user.email,
+                        task_title: task.title,
+                        deadline: task.deadline.split('-').reverse().join('/')
+                    });
+                } catch (err) {
+                    console.error("Erro ao enviar e-mail via EmailJS:", err);
+                }
+            }
 
             const toast = document.createElement('div');
             toast.className = 'toast-enter bg-zinc-800 text-white p-4 rounded-lg shadow-xl flex items-start space-x-3 max-w-sm border-l-4 border-red-600';
-            toast.innerHTML = `<i class="fa-solid fa-envelope-open-text text-xl text-red-500 mt-0.5"></i><div><h4 class="font-bold text-sm">Prazo Vencido!</h4><p class="text-xs text-zinc-300 mt-1">Alerta enviado para <b>${user.email}</b> sobre "${task.title}".</p></div>`;
+            toast.innerHTML = `<i class="fa-solid fa-envelope-open-text text-xl text-red-500 mt-0.5"></i><div><h4 class="font-bold text-sm">E-mail Real Enviado!</h4><p class="text-xs text-zinc-300 mt-1">Notificação disparada para <b>${user.email}</b> sobre "${task.title}".</p></div>`;
             document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 500); }, 6000);
         }
@@ -354,7 +380,6 @@
             document.getElementById('task-assignee').innerHTML = html;
         }
 
-        // Navegação Primária
         window.switchTab = (tab) => {
             currentTab = tab;
             ['ideas', 'discarded', 'projects', 'completed', 'users'].forEach(t => {
@@ -377,7 +402,6 @@
             if (tab === 'users') renderUsers();
         };
 
-        // Navegação de Projetos (Grid <=> Kanban)
         window.openProjectKanban = (id) => {
             activeProjectId = id;
             document.getElementById('projects-grid-container').classList.add('hidden');
@@ -403,7 +427,6 @@
             checkAndNotifyOverdueTasks(); 
         };
 
-        // Modais Visuais
         window.openIdeaModal = (id = null) => { 
             document.getElementById('idea-edit-id').value = id || '';
             document.getElementById('idea-modal-title').textContent = id ? 'Editar Ideia' : 'Nova Ideia';
@@ -458,7 +481,6 @@
         };
         window.closeProjectModal = () => { document.getElementById('project-modal').classList.add('hidden'); document.getElementById('project-form').reset(); };
 
-        // CRUD Usuários
         window.handleSaveUser = async (e) => {
             e.preventDefault();
             const id = document.getElementById('user-edit-id').value;
@@ -475,7 +497,6 @@
             window.closeUserModal(); renderUsers(); updateSelects();
         };
 
-        // CRUD Ideias
         window.handleSaveIdea = async (e) => {
             e.preventDefault();
             const id = document.getElementById('idea-edit-id').value;
@@ -493,7 +514,6 @@
             window.closeIdeaModal(); renderIdeas();
         };
 
-        // CRUD Tarefas
         window.handleSaveTask = async (e) => {
             e.preventDefault();
             const id = document.getElementById('task-edit-id').value;
@@ -515,7 +535,6 @@
             }
         };
 
-        // CRUD Projetos (Informações e Anotações)
         window.handleSaveProject = async (e) => {
             e.preventDefault();
             const currentProj = projects.find(p => p.id === activeProjectId);
@@ -543,7 +562,6 @@
             }
         };
 
-        // Ações Rápidas
         window.likeIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.likes++; renderIdeas(); await updateDoc(doc(db, "ideas", id), { likes: idea.likes }); } };
         window.discardIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.status = 'discarded'; renderIdeas(); await updateDoc(doc(db, "ideas", id), { status: 'discarded' }); } };
         window.restoreIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.status = 'active'; renderDiscardedIdeas(); await updateDoc(doc(db, "ideas", id), { status: 'active' }); } };
@@ -596,7 +614,6 @@
             if(p) { p.tasks = p.tasks.filter(t => t.id !== taskId); renderKanban(); await updateDoc(doc(db, "projects", p.id), { tasks: p.tasks }); }
         };
 
-        // Renderizações da Grade
         function renderUsers() {
             document.getElementById('users-grid').innerHTML = users.map(u => `
                 <div class="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm relative group">
@@ -626,7 +643,6 @@
                 <div class="bg-white p-6 rounded-2xl border border-zinc-200 opacity-70"><h3 class="font-bold line-through mb-2">${idea.title}</h3><p class="text-sm text-zinc-500 mb-4 whitespace-pre-wrap">${idea.desc}</p><div class="pt-4 border-t border-zinc-100 flex justify-between"><button onclick="deleteIdea('${idea.id}')" class="text-xs text-red-600 hover:underline">Excluir Permanente</button><button onclick="restoreIdea('${idea.id}')" class="bg-zinc-200 hover:bg-zinc-300 transition px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-700">Restaurar</button></div></div>`).join('');
         }
 
-        // TELA PANORÂMICA DOS PROJETOS (GRID)
         function renderProjectsGrid() {
             const active = projects.filter(p => p.status === 'active');
             const grid = document.getElementById('projects-active-grid');
@@ -674,7 +690,6 @@
             }).join('');
         }
 
-        // TELA DETALHADA DO PROJETO (KANBAN)
         function renderKanban() {
             const p = projects.find(p => p.id === activeProjectId); 
             if(!p) return;
@@ -729,7 +744,6 @@
                 </div>`).join('');
         }
 
-        // Iniciar
         loadData();
     </script>
 </body>
