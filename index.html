@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAK InovFLOW v1.11 - Gestão Completa de Ideias e Projetos</title>
+    <title>MAK InovFLOW v1.12 - Gestão Completa de Ideias e Projetos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Biblioteca EmailJS -->
@@ -40,7 +40,7 @@
                 <img src="Logo_MAK.png" alt="MAK Soluções Elétricas" class="h-10 object-contain">
                 <div class="flex items-center space-x-2 border-l-2 border-red-600 pl-3 ml-2">
                     <span class="text-xl font-bold tracking-wide text-zinc-800">InovFLOW</span>
-                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.11</span>
+                    <span class="text-xs font-bold px-2 py-0.5 bg-red-100 text-red-700 rounded-full">v1.12</span>
                 </div>
             </div>
             <nav class="flex flex-wrap justify-center gap-2 md:gap-4 text-sm md:text-base mt-2 md:mt-0">
@@ -82,7 +82,7 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-zinc-900">Gestão de Projetos Ativos</h1>
-                    <p class="text-zinc-500 text-sm">Acompanhe as tarefas. <span class="text-red-500 font-medium">Atenção aos alertas de prazos!</span></p>
+                    <p class="text-zinc-500 text-sm">Acompanhe as tarefas e cronogramas.</p>
                 </div>
             </div>
             <div id="projects-grid-container" class="space-y-6">
@@ -108,6 +108,7 @@
                             <p id="kanban-project-notes" class="text-zinc-600 whitespace-pre-wrap leading-relaxed italic">...</p>
                         </div>
                     </div>
+                    <div id="kanban-overdue-alert"></div>
                     <div class="flex flex-col md:flex-row justify-between items-end gap-4 pt-2">
                         <div class="w-full md:w-1/2 space-y-1">
                             <div class="flex justify-between text-xs font-semibold">
@@ -189,14 +190,19 @@
         </div>
     </div>
 
+    <!-- Modal de Tarefa Atualizado com Sequência e Notas -->
     <div id="task-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border-t-4 border-red-600">
             <h2 id="task-modal-title" class="text-xl font-bold text-zinc-900">Nova Tarefa</h2>
             <form id="task-form" onsubmit="handleSaveTask(event)" class="space-y-4">
                 <input type="hidden" id="task-edit-id">
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Título da Tarefa</label><input type="text" id="task-title" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-sm font-medium text-zinc-700 mb-1">Sequência / Ordem</label><input type="number" id="task-sequence" min="1" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></div>
+                    <div><label class="block text-sm font-medium text-zinc-700 mb-1">Prazo limite</label><input type="date" id="task-deadline" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></div>
+                </div>
                 <div><label class="block text-sm font-medium text-zinc-700 mb-1">Responsável</label><select id="task-assignee" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></select></div>
-                <div><label class="block text-sm font-medium text-zinc-700 mb-1">Prazo limite</label><input type="date" id="task-deadline" required class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none"></div>
+                <div><label class="block text-sm font-medium text-zinc-700 mb-1">Notas da Tarefa</label><textarea id="task-notes" rows="2" class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Observações específicas, instruções ou links..."></textarea></div>
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeTaskModal()" class="px-4 py-2 border rounded-lg text-zinc-600 hover:bg-zinc-100 transition text-sm">Cancelar</button>
                     <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm">Salvar</button>
@@ -315,10 +321,7 @@
         async function sendOverdueEmail(task, user) {
             if(task.emailSent) return;
             
-            console.log("Tentando enviar e-mail para:", user.email, "Tarefa:", task.title);
-
             try {
-                // Tenta enviar o e-mail primeiro
                 await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
                     to_name: user.name,
                     to_email: user.email,
@@ -326,9 +329,6 @@
                     deadline: task.deadline.split('-').reverse().join('/')
                 });
                 
-                console.log("E-mail disparado com sucesso.");
-                
-                // Só atualiza o banco se o envio for bem-sucedido
                 task.emailSent = true; 
                 const proj = projects.find(p => p.tasks.some(t => t.id === task.id));
                 if(proj) {
@@ -432,12 +432,20 @@
             currentTaskStatus = status; 
             document.getElementById('task-edit-id').value = id || '';
             document.getElementById('task-modal-title').textContent = id ? 'Editar Tarefa' : 'Nova Tarefa';
+            const currentProj = projects.find(p => p.id === activeProjectId);
             if(id) {
-                const proj = projects.find(p => p.id === activeProjectId);
-                const task = proj.tasks.find(t => t.id === id);
+                const task = currentProj.tasks.find(t => t.id === id);
                 document.getElementById('task-title').value = task.title;
                 document.getElementById('task-assignee').value = task.assigneeId;
                 document.getElementById('task-deadline').value = task.deadline;
+                document.getElementById('task-sequence').value = task.sequence || (currentProj.tasks.indexOf(task) + 1);
+                document.getElementById('task-notes').value = task.notes || '';
+            } else {
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-assignee').value = '';
+                document.getElementById('task-deadline').value = '';
+                document.getElementById('task-sequence').value = currentProj ? currentProj.tasks.length + 1 : 1;
+                document.getElementById('task-notes').value = '';
             }
             document.getElementById('task-modal').classList.remove('hidden'); 
         };
@@ -511,13 +519,34 @@
                 const tTitle = document.getElementById('task-title').value;
                 const tAssignee = document.getElementById('task-assignee').value;
                 const tDeadline = document.getElementById('task-deadline').value;
+                const tSequence = parseInt(document.getElementById('task-sequence').value) || 1;
+                const tNotes = document.getElementById('task-notes').value;
 
                 if (id) {
                     const task = currentProj.tasks.find(t => t.id === id);
-                    if (task) { task.title = tTitle; task.assigneeId = tAssignee; task.deadline = tDeadline; }
+                    if (task) { 
+                        task.title = tTitle; 
+                        task.assigneeId = tAssignee; 
+                        task.deadline = tDeadline; 
+                        task.sequence = tSequence;
+                        task.notes = tNotes;
+                    }
                 } else {
-                    currentProj.tasks.push({ id: Date.now().toString(), title: tTitle, assigneeId: tAssignee, deadline: tDeadline, status: currentTaskStatus, emailSent: false });
+                    currentProj.tasks.push({ 
+                        id: Date.now().toString(), 
+                        title: tTitle, 
+                        assigneeId: tAssignee, 
+                        deadline: tDeadline, 
+                        status: currentTaskStatus, 
+                        emailSent: false,
+                        sequence: tSequence,
+                        notes: tNotes
+                    });
                 }
+                
+                // Ordenamento automático por sequência
+                currentProj.tasks.sort((a, b) => (parseInt(a.sequence) || 0) - (parseInt(b.sequence) || 0));
+
                 await updateDoc(doc(db, "projects", currentProj.id), { tasks: currentProj.tasks });
                 window.closeTaskModal(); renderKanban(); checkAndNotifyOverdueTasks();
             }
@@ -564,7 +593,7 @@
                 desc: idea.desc, 
                 notes: '', 
                 status: 'active', 
-                tasks: [{ id: Date.now().toString(), title: 'Planejamento Inicial', status: 'todo', assigneeId: idea.authorId, deadline: new Date().toISOString().split('T')[0], emailSent: false }] 
+                tasks: [{ id: Date.now().toString(), title: 'Planejamento Inicial', status: 'todo', assigneeId: idea.authorId, deadline: new Date().toISOString().split('T')[0], emailSent: false, sequence: 1, notes: '' }] 
             };
             
             const docRef = await addDoc(collection(db, "projects"), newProj);
@@ -689,6 +718,11 @@
             let counts = { todo: 0, inprogress: 0, done: 0 };
             
             let maxDate = null;
+            let hasAnyOverdue = false;
+
+            // Ordenamento automático das tarefas por sequência
+            p.tasks.sort((a, b) => (parseInt(a.sequence) || 0) - (parseInt(b.sequence) || 0));
+
             p.tasks.forEach(t => {
                 counts[t.status]++;
                 if(t.deadline) {
@@ -696,13 +730,19 @@
                     if(!maxDate || tDate > maxDate) maxDate = tDate;
                 }
 
-                const user = getUser(t.assigneeId);
                 const overdue = isOverdue(t.deadline) && t.status !== 'done';
+                if(overdue) hasAnyOverdue = true;
+
+                const user = getUser(t.assigneeId);
                 let btns = t.status === 'todo' ? `<button onclick="moveTask('${t.id}', 'inprogress')" class="text-red-600 font-medium">Avançar &rarr;</button>` : t.status === 'inprogress' ? `<button onclick="moveTask('${t.id}', 'todo')" class="text-zinc-500">&larr;</button> <button onclick="moveTask('${t.id}', 'done')" class="text-emerald-600">&rarr;</button>` : `<button onclick="moveTask('${t.id}', 'inprogress')" class="text-zinc-500">Desfazer</button>`;
                 
                 const html = `<div class="p-3 rounded-lg border-2 relative group ${overdue ? 'border-red-400 bg-red-50' : 'border-transparent border-zinc-200 bg-white'} shadow-sm space-y-2 text-sm">
                     <button onclick="openTaskModal('${t.status}', '${t.id}')" class="absolute top-2 right-2 text-zinc-300 hover:text-red-600 transition hidden group-hover:block"><i class="fa-solid fa-pen text-xs"></i></button>
-                    <div class="flex justify-between font-medium pr-5 ${overdue ? 'text-red-900' : 'text-zinc-800'}"><span class="leading-tight">${t.title}</span>${overdue ? '<span class="bg-red-600 text-white text-[10px] px-1 rounded h-4 flex items-center animate-pulse">Atraso</span>' : ''}</div>
+                    <div class="flex justify-between font-medium pr-5 ${overdue ? 'text-red-900' : 'text-zinc-800'}">
+                        <span class="leading-tight"><span class="text-xs font-bold text-zinc-400 mr-1.5">#${t.sequence || 1}</span>${t.title}</span>
+                        ${overdue ? '<span class="bg-red-600 text-white text-[10px] px-1 rounded h-4 flex items-center animate-pulse">Atraso</span>' : ''}
+                    </div>
+                    ${t.notes ? `<div class="text-xs text-zinc-600 bg-black/5 p-1.5 rounded italic"><i class="fa-solid fa-note-sticky mr-1 text-zinc-400"></i>${t.notes}</div>` : ''}
                     <div class="flex justify-between text-xs bg-black/5 p-1 rounded"><span class="truncate pr-2"><i class="fa-solid fa-user mr-1"></i>${user?user.name.split(' ')[0]:'N/D'}</span><span class="${overdue ? 'text-red-600 font-bold' : 'text-zinc-500'}"><i class="fa-solid fa-calendar mr-1"></i>${t.deadline?t.deadline.split('-').reverse().join('/'):''}</span></div>
                     <div class="flex justify-between pt-2 border-t ${overdue?'border-red-200':'border-zinc-100'}"><button onclick="deleteTask('${t.id}')" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button><div class="space-x-2">${btns}</div></div>
                 </div>`;
@@ -715,6 +755,17 @@
             document.getElementById('project-progress-bar').style.width = percentage + '%';
             document.getElementById('project-progress-text').textContent = percentage + '%';
             document.getElementById('project-deadline-date').textContent = maxDate ? maxDate.toLocaleDateString('pt-BR') : 'Sem tarefas marcadas';
+
+            // Alerta de prazo condicional (aparece SOMENTE se houver atraso)
+            const alertBox = document.getElementById('kanban-overdue-alert');
+            if (hasAnyOverdue) {
+                alertBox.innerHTML = `<div class="p-3 bg-red-100 border border-red-300 text-red-800 rounded-lg flex items-center space-x-2 text-sm animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-lg"></i>
+                    <span><strong>Atenção:</strong> Há tarefas com prazos vencidos neste projeto!</span>
+                </div>`;
+            } else {
+                alertBox.innerHTML = '';
+            }
         }
 
         function renderCompletedProjects() {
