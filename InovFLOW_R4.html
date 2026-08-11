@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAK InovFLOW - Gestão Completa de Ideias e Projetos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        .loader { border-top-color: #4f46e5; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col relative">
+
+    <!-- Tela de Carregamento Inicial -->
+    <div id="loading-screen" class="fixed inset-0 bg-white z-[60] flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-slate-200 rounded-full loader mb-4"></div>
+        <p class="text-slate-600 font-medium">Conectando ao Firebase...</p>
+    </div>
+
+    <!-- Recipiente para Notificações (E-mails simulados) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2"></div>
+
+    <!-- Header / Navegação -->
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-lightbulb text-2xl text-yellow-300"></i>
+                <span class="text-xl font-bold tracking-wide">MAK InovFLOW</span>
+            </div>
+            <nav class="flex flex-wrap justify-center gap-2 md:gap-4 text-sm md:text-base">
+                <button onclick="switchTab('ideas')" id="nav-ideas" class="px-3 py-1 font-medium hover:text-yellow-200 transition border-b-2 border-yellow-300">Ideias Ativas</button>
+                <button onclick="switchTab('projects')" id="nav-projects" class="px-3 py-1 font-medium hover:text-yellow-200 transition border-b-2 border-transparent">Projetos Ativos</button>
+                <button onclick="switchTab('completed')" id="nav-completed" class="px-3 py-1 font-medium hover:text-yellow-200 transition border-b-2 border-transparent">Projetos Concluídos</button>
+                <button onclick="switchTab('discarded')" id="nav-discarded" class="px-3 py-1 font-medium hover:text-yellow-200 transition border-b-2 border-transparent">Lixeira</button>
+                <button onclick="switchTab('users')" id="nav-users" class="px-3 py-1 font-medium hover:text-yellow-200 transition border-b-2 border-transparent"><i class="fa-solid fa-users mr-1"></i> Usuários</button>
+            </nav>
+            <button onclick="openIdeaModal()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-2 text-sm">
+                <i class="fa-solid fa-plus"></i>
+                <span>Nova Ideia</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+        
+        <!-- ABA 1: IDEIAS -->
+        <section id="tab-ideas" class="space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Feed de Ideias Inovadoras</h1>
+                    <p class="text-slate-500 text-sm">Explore ideias da comunidade, vote, transforme em projetos ou descarte.</p>
+                </div>
+            </div>
+            <div id="ideas-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- ABA 2: LIXEIRA -->
+        <section id="tab-discarded" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Ideias Descartadas</h1>
+                    <p class="text-slate-500 text-sm">Arquivo de ideias que não avançaram no momento.</p>
+                </div>
+            </div>
+            <div id="discarded-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- ABA 3: PROJETOS ATIVOS -->
+        <section id="tab-projects" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Gestão de Projetos Ativos</h1>
+                    <p class="text-slate-500 text-sm">Acompanhe tarefas. <span class="text-rose-500 font-medium">Atenção aos alertas de prazos vencidos!</span></p>
+                </div>
+                <button onclick="completeActiveProject()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg shadow transition flex items-center space-x-2 text-sm">
+                    <i class="fa-solid fa-check-double"></i> <span>Concluir Este Projeto</span>
+                </button>
+            </div>
+
+            <div class="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <span class="font-semibold text-slate-700 text-sm">Projeto Selecionado:</span>
+                <select id="project-selector" onchange="changeActiveProject(this.value)" class="border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"></select>
+            </div>
+
+            <!-- Kanban Board -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Coluna A Fazer -->
+                <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 flex flex-col h-[520px]">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700 flex items-center space-x-2 text-sm"><span class="w-3 h-3 rounded-full bg-amber-400"></span><span>A Fazer</span></h3><span id="count-todo" class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold">0</span></div>
+                    <div id="kanban-todo" class="flex-grow overflow-y-auto space-y-3 pr-1"></div>
+                    <div class="mt-3"><button onclick="openTaskModal('todo')" class="w-full py-2 bg-white border border-dashed border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition text-sm font-medium">+ Adicionar Tarefa</button></div>
+                </div>
+                <!-- Coluna Em Andamento -->
+                <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 flex flex-col h-[520px]">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700 flex items-center space-x-2 text-sm"><span class="w-3 h-3 rounded-full bg-blue-500"></span><span>Em Andamento</span></h3><span id="count-inprogress" class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold">0</span></div>
+                    <div id="kanban-inprogress" class="flex-grow overflow-y-auto space-y-3 pr-1"></div>
+                    <div class="mt-3"><button onclick="openTaskModal('inprogress')" class="w-full py-2 bg-white border border-dashed border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 transition text-sm font-medium">+ Adicionar Tarefa</button></div>
+                </div>
+                <!-- Coluna Concluído -->
+                <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 flex flex-col h-[520px]">
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700 flex items-center space-x-2 text-sm"><span class="w-3 h-3 rounded-full bg-emerald-500"></span><span>Concluído</span></h3><span id="count-done" class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full font-bold">0</span></div>
+                    <div id="kanban-done" class="flex-grow overflow-y-auto space-y-3 pr-1"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 4: PROJETOS CONCLUÍDOS -->
+        <section id="tab-completed" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Projetos Concluídos</h1>
+                    <p class="text-slate-500 text-sm">Histórico de projetos finalizados com sucesso.</p>
+                </div>
+            </div>
+            <div id="completed-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- ABA 5: USUÁRIOS -->
+        <section id="tab-users" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Cadastro de Equipe</h1>
+                    <p class="text-slate-500 text-sm">Gerencie os usuários do MAK InovFLOW.</p>
+                </div>
+                <button onclick="openUserModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg shadow transition flex items-center space-x-2 text-sm">
+                    <i class="fa-solid fa-user-plus"></i> <span>Novo Usuário</span>
+                </button>
+            </div>
+            <div id="users-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </section>
+
+    </main>
+
+    <!-- Modais (Ideia, Tarefa e Usuário) -->
+    <div id="idea-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h2 class="text-xl font-bold text-slate-900">Compartilhar Nova Ideia</h2>
+            <form id="idea-form" onsubmit="handleCreateIdea(event)" class="space-y-4">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Título da Ideia</label><input type="text" id="idea-title" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Autor (Usuário)</label><select id="idea-author" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none"></select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Descrição</label><textarea id="idea-desc" rows="3" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:outline-none"></textarea></div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeIdeaModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 transition text-sm">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition font-medium text-sm">Publicar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="task-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <h2 class="text-xl font-bold text-slate-900">Adicionar Tarefa</h2>
+            <form id="task-form" onsubmit="handleCreateTask(event)" class="space-y-4">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Título da Tarefa</label><input type="text" id="task-title" required class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Responsável</label><select id="task-assignee" required class="w-full border rounded-lg px-3 py-2 text-sm"></select></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Prazo limite</label><input type="date" id="task-deadline" required class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeTaskModal()" class="px-4 py-2 border rounded-lg text-slate-600 text-sm">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="user-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
+            <h2 class="text-xl font-bold text-slate-900">Cadastrar Usuário</h2>
+            <form id="user-form" onsubmit="handleCreateUser(event)" class="space-y-4">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Nome</label><input type="text" id="user-name" required class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label><input type="email" id="user-email" required class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Telefone</label><input type="tel" id="user-phone" required class="w-full border rounded-lg px-3 py-2 text-sm"></div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeUserModal()" class="px-4 py-2 border rounded-lg text-slate-600 text-sm">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Módulo V9) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // =====================================================================
+        // COLOQUE SUAS CREDENCIAIS DO FIREBASE AQUI
+        // =====================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDH5yGlK5zzk5pJkjRhDjN-3C8up5y9eOk",
+            authDomain: "mak-inovflow.firebaseapp.com",
+            projectId: "mak-inovflow",
+            storageBucket: "mak-inovflow.firebasestorage.app",
+            messagingSenderId: "190309162276",
+            appId: "1:190309162276:web:6be5cd88e5d2cf98b4a7b1"
+        };
+        // =====================================================================
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Estado da Aplicação
+        let users = [];
+        let ideas = [];
+        let projects = [];
+        let activeProjectId = null;
+        let currentTaskStatus = 'todo';
+        let currentTab = 'ideas';
+
+        // Carregar dados iniciais do Firebase
+        async function loadData() {
+            try {
+                const uSnap = await getDocs(collection(db, "users"));
+                users = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                const iSnap = await getDocs(collection(db, "ideas"));
+                ideas = iSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                const pSnap = await getDocs(collection(db, "projects"));
+                projects = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                document.getElementById('loading-screen').classList.add('hidden');
+                updateSelects();
+                window.switchTab('ideas');
+            } catch (error) {
+                alert("Erro ao conectar no banco. Verifique as credenciais do Firebase.");
+                console.error(error);
+            }
+        }
+
+        // Funções Auxiliares
+        const getUser = (id) => users.find(u => u.id === id);
+        const isOverdue = (deadlineStr) => {
+            if(!deadlineStr) return false;
+            const today = new Date(); today.setHours(0,0,0,0);
+            return new Date(deadlineStr + 'T00:00:00') < today;
+        };
+
+        function sendOverdueEmail(task, user) {
+            if(task.emailSent) return;
+            task.emailSent = true; 
+            // Atualiza local e na nuvem de forma silenciosa
+            const proj = projects.find(p => p.tasks.some(t => t.id === task.id));
+            if(proj) updateDoc(doc(db, "projects", proj.id), { tasks: proj.tasks });
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-enter bg-slate-800 text-white p-4 rounded-lg shadow-xl flex items-start space-x-3 max-w-sm border-l-4 border-rose-500';
+            toast.innerHTML = `<i class="fa-solid fa-envelope-open-text text-xl text-rose-400 mt-0.5"></i><div><h4 class="font-bold text-sm">Prazo Vencido!</h4><p class="text-xs text-slate-300 mt-1">Alerta enviado para <b>${user.email}</b> sobre "${task.title}".</p></div>`;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 500); }, 6000);
+        }
+
+        function checkAndNotifyOverdueTasks() {
+            projects.forEach(p => {
+                if(p.status === 'active') {
+                    p.tasks.forEach(t => {
+                        if (t.status !== 'done' && isOverdue(t.deadline) && !t.emailSent) {
+                            const user = getUser(t.assigneeId);
+                            if(user) sendOverdueEmail(t, user);
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateSelects() {
+            const html = '<option value="" disabled selected>Selecione um usuário...</option>' + 
+                         users.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+            document.getElementById('idea-author').innerHTML = html;
+            document.getElementById('task-assignee').innerHTML = html;
+        }
+
+        // EXPORTANDO FUNÇÕES PARA O HTML
+        window.switchTab = (tab) => {
+            currentTab = tab;
+            ['ideas', 'discarded', 'projects', 'completed', 'users'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+                document.getElementById(`nav-${t}`).classList.toggle('border-yellow-300', t === tab);
+                document.getElementById(`nav-${t}`).classList.toggle('text-white', t === tab);
+                document.getElementById(`nav-${t}`).classList.toggle('border-transparent', t !== tab);
+            });
+            if (tab === 'ideas') renderIdeas();
+            if (tab === 'discarded') renderDiscardedIdeas();
+            if (tab === 'projects') { renderProjectsView(); checkAndNotifyOverdueTasks(); }
+            if (tab === 'completed') renderCompletedProjects();
+            if (tab === 'users') renderUsers();
+        };
+
+        // Modais
+        window.openIdeaModal = () => document.getElementById('idea-modal').classList.remove('hidden');
+        window.closeIdeaModal = () => { document.getElementById('idea-modal').classList.add('hidden'); document.getElementById('idea-form').reset(); };
+        window.openTaskModal = (status) => { currentTaskStatus = status; document.getElementById('task-modal').classList.remove('hidden'); };
+        window.closeTaskModal = () => { document.getElementById('task-modal').classList.add('hidden'); document.getElementById('task-form').reset(); };
+        window.openUserModal = () => document.getElementById('user-modal').classList.remove('hidden');
+        window.closeUserModal = () => { document.getElementById('user-modal').classList.add('hidden'); document.getElementById('user-form').reset(); };
+
+        // ================= BANCO DE DADOS: CREATE =================
+        window.handleCreateUser = async (e) => {
+            e.preventDefault();
+            const newUser = { name: document.getElementById('user-name').value, email: document.getElementById('user-email').value, phone: document.getElementById('user-phone').value };
+            const docRef = await addDoc(collection(db, "users"), newUser);
+            users.push({ id: docRef.id, ...newUser });
+            window.closeUserModal(); renderUsers(); updateSelects();
+        };
+
+        window.handleCreateIdea = async (e) => {
+            e.preventDefault();
+            const newIdea = { title: document.getElementById('idea-title').value, authorId: document.getElementById('idea-author').value, desc: document.getElementById('idea-desc').value, likes: 0, status: 'active' };
+            const docRef = await addDoc(collection(db, "ideas"), newIdea);
+            ideas.unshift({ id: docRef.id, ...newIdea });
+            window.closeIdeaModal(); renderIdeas();
+        };
+
+        window.handleCreateTask = async (e) => {
+            e.preventDefault();
+            const currentProj = projects.find(p => p.id === activeProjectId);
+            if (currentProj) {
+                const newTask = { id: Date.now().toString(), title: document.getElementById('task-title').value, assigneeId: document.getElementById('task-assignee').value, deadline: document.getElementById('task-deadline').value, status: currentTaskStatus, emailSent: false };
+                currentProj.tasks.push(newTask);
+                await updateDoc(doc(db, "projects", currentProj.id), { tasks: currentProj.tasks });
+                window.closeTaskModal(); renderKanban(); checkAndNotifyOverdueTasks();
+            }
+        };
+
+        // ================= BANCO DE DADOS: ACTIONS =================
+        window.likeIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.likes++; renderIdeas(); await updateDoc(doc(db, "ideas", id), { likes: idea.likes }); } };
+        window.discardIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.status = 'discarded'; renderIdeas(); await updateDoc(doc(db, "ideas", id), { status: 'discarded' }); } };
+        window.restoreIdea = async (id) => { const idea = ideas.find(i => i.id === id); if(idea) { idea.status = 'active'; renderDiscardedIdeas(); await updateDoc(doc(db, "ideas", id), { status: 'active' }); } };
+        window.deleteIdea = async (id) => { ideas = ideas.filter(i => i.id !== id); renderDiscardedIdeas(); await deleteDoc(doc(db, "ideas", id)); };
+
+        window.convertToProject = async (id) => {
+            const idea = ideas.find(i => i.id === id); if (!idea) return;
+            ideas = ideas.filter(i => i.id !== id); await deleteDoc(doc(db, "ideas", id));
+            
+            const newProj = { title: idea.title, status: 'active', tasks: [{ id: Date.now().toString(), title: 'Planejamento Inicial', status: 'todo', assigneeId: idea.authorId, deadline: new Date().toISOString().split('T')[0], emailSent: false }] };
+            const docRef = await addDoc(collection(db, "projects"), newProj);
+            projects.push({ id: docRef.id, ...newProj });
+            activeProjectId = docRef.id;
+            alert(`A ideia virou um projeto!`); window.switchTab('projects');
+        };
+
+        window.changeActiveProject = (id) => { activeProjectId = id; renderKanban(); checkAndNotifyOverdueTasks(); };
+        window.completeActiveProject = async () => {
+            const proj = projects.find(p => p.id === activeProjectId);
+            if (proj && confirm(`Concluir projeto?`)) { proj.status = 'completed'; await updateDoc(doc(db, "projects", proj.id), { status: 'completed' }); window.switchTab('completed'); }
+        };
+        window.reopenProject = async (id) => { const proj = projects.find(p => p.id === id); if(proj) { proj.status = 'active'; activeProjectId = proj.id; await updateDoc(doc(db, "projects", id), { status: 'active' }); window.switchTab('projects'); } };
+
+        window.moveTask = async (taskId, newStatus) => {
+            const p = projects.find(p => p.id === activeProjectId);
+            if(p) { const t = p.tasks.find(t => t.id === taskId); if(t) { t.status = newStatus; renderKanban(); await updateDoc(doc(db, "projects", p.id), { tasks: p.tasks }); if(newStatus!=='done') checkAndNotifyOverdueTasks(); } }
+        };
+        window.deleteTask = async (taskId) => {
+            const p = projects.find(p => p.id === activeProjectId);
+            if(p) { p.tasks = p.tasks.filter(t => t.id !== taskId); renderKanban(); await updateDoc(doc(db, "projects", p.id), { tasks: p.tasks }); }
+        };
+
+        // ================= RENDERIZAÇÕES DOM =================
+        function renderUsers() {
+            document.getElementById('users-grid').innerHTML = users.map(u => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><div class="flex items-center space-x-3 mb-3"><div class="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">${u.name.charAt(0)}</div><h3 class="font-bold text-slate-800 truncate">${u.name}</h3></div><div class="space-y-1 text-xs text-slate-600"><p><i class="fa-solid fa-envelope w-4"></i> ${u.email}</p><p><i class="fa-solid fa-phone w-4"></i> ${u.phone}</p></div></div>`).join('');
+        }
+
+        function renderIdeas() {
+            const active = ideas.filter(i => i.status === 'active');
+            document.getElementById('ideas-grid').innerHTML = active.length === 0 ? '<p class="text-slate-400 col-span-full text-center py-8">Nenhuma ideia.</p>' : active.map(idea => {
+                const author = getUser(idea.authorId);
+                return `<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition"><div class="space-y-2 mb-4"><span class="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-600 rounded-full"><i class="fa-solid fa-user mr-1"></i> ${author ? author.name.split(' ')[0] : 'Desconhecido'}</span><h3 class="font-bold text-lg">${idea.title}</h3><p class="text-slate-600 text-sm">${idea.desc}</p></div><div class="pt-4 border-t border-slate-100 flex justify-between"><button onclick="likeIdea('${idea.id}')" class="text-slate-500 hover:text-rose-500 text-sm font-medium"><i class="fa-solid fa-heart mr-1"></i>${idea.likes}</button><div class="space-x-2"><button onclick="discardIdea('${idea.id}')" class="text-slate-400 hover:text-amber-600 text-xs px-2 py-1"><i class="fa-solid fa-ban"></i></button><button onclick="convertToProject('${idea.id}')" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Projeto</button></div></div></div>`;
+            }).join('');
+        }
+
+        function renderDiscardedIdeas() {
+            const discarded = ideas.filter(i => i.status === 'discarded');
+            document.getElementById('discarded-grid').innerHTML = discarded.length === 0 ? '<p class="text-slate-400 col-span-full text-center py-8">Lixeira vazia.</p>' : discarded.map(idea => `
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 opacity-70"><h3 class="font-bold line-through mb-2">${idea.title}</h3><p class="text-sm text-slate-500 mb-4">${idea.desc}</p><div class="pt-4 border-t border-slate-100 flex justify-between"><button onclick="deleteIdea('${idea.id}')" class="text-xs text-rose-500 hover:underline">Excluir Permanente</button><button onclick="restoreIdea('${idea.id}')" class="bg-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold">Restaurar</button></div></div>`).join('');
+        }
+
+        function renderProjectsView() {
+            const activeProj = projects.filter(p => p.status === 'active');
+            const selector = document.getElementById('project-selector');
+            if (activeProj.length === 0) { selector.innerHTML = '<option>Nenhum projeto ativo</option>'; ['todo', 'inprogress', 'done'].forEach(id => document.getElementById('kanban-'+id).innerHTML = ''); return; }
+            
+            selector.innerHTML = activeProj.map(p => `<option value="${p.id}" ${p.id === activeProjectId ? 'selected' : ''}>${p.title}</option>`).join('');
+            if (!activeProj.some(p => p.id === activeProjectId)) { activeProjectId = activeProj[0].id; selector.value = activeProjectId; }
+            renderKanban();
+        }
+
+        function renderKanban() {
+            const p = projects.find(p => p.id === activeProjectId); if(!p) return;
+            ['todo', 'inprogress', 'done'].forEach(id => document.getElementById('kanban-'+id).innerHTML = '');
+            let counts = { todo: 0, inprogress: 0, done: 0 };
+
+            p.tasks.forEach(t => {
+                counts[t.status]++;
+                const user = getUser(t.assigneeId);
+                const overdue = isOverdue(t.deadline) && t.status !== 'done';
+                let btns = t.status === 'todo' ? `<button onclick="moveTask('${t.id}', 'inprogress')" class="text-indigo-600 font-medium">Avançar &rarr;</button>` : t.status === 'inprogress' ? `<button onclick="moveTask('${t.id}', 'todo')" class="text-slate-500">&larr;</button> <button onclick="moveTask('${t.id}', 'done')" class="text-emerald-600">&rarr;</button>` : `<button onclick="moveTask('${t.id}', 'inprogress')" class="text-slate-500">Desfazer</button>`;
+                
+                const html = `<div class="p-3 rounded-lg border-2 ${overdue ? 'border-rose-400 bg-rose-50' : 'border-transparent border-slate-200 bg-white'} shadow-sm space-y-2 text-sm"><div class="flex justify-between font-medium ${overdue ? 'text-rose-900' : 'text-slate-800'}"><span>${t.title}</span>${overdue ? '<span class="bg-rose-600 text-white text-[10px] px-1 rounded animate-pulse">Atrasada</span>' : ''}</div><div class="flex justify-between text-xs bg-black/5 p-1 rounded"><span class="truncate pr-2"><i class="fa-solid fa-user mr-1"></i>${user?user.name.split(' ')[0]:'N/D'}</span><span class="${overdue ? 'text-rose-600 font-bold' : 'text-slate-500'}"><i class="fa-solid fa-calendar mr-1"></i>${t.deadline?t.deadline.split('-').reverse().join('/'):''}</span></div><div class="flex justify-between pt-2 border-t ${overdue?'border-rose-200':'border-slate-100'}"><button onclick="deleteTask('${t.id}')" class="text-rose-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button><div class="space-x-2">${btns}</div></div></div>`;
+                document.getElementById('kanban-'+t.status).insertAdjacentHTML('beforeend', html);
+            });
+            ['todo', 'inprogress', 'done'].forEach(id => document.getElementById('count-'+id).textContent = counts[id]);
+        }
+
+        function renderCompletedProjects() {
+            const completed = projects.filter(p => p.status === 'completed');
+            document.getElementById('completed-grid').innerHTML = completed.length === 0 ? '<p class="text-slate-400 col-span-full text-center py-8">Nenhum projeto concluído.</p>' : completed.map(p => `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-200"><div class="space-y-2 mb-4"><span class="text-xs font-semibold px-2 py-1 bg-emerald-50 text-emerald-600 rounded-full"><i class="fa-solid fa-check-circle"></i> Concluído</span><h3 class="font-bold text-lg">${p.title}</h3><p class="text-slate-500 text-xs">${p.tasks.length} tarefas</p></div><div class="pt-4 border-t border-slate-100 flex justify-between"><button onclick="reopenProject('${p.id}')" class="text-xs text-indigo-600 font-medium">Reabrir Projeto</button></div></div>`).join('');
+        }
+
+        // Start App
+        loadData();
+    </script>
+</body>
+</html>
